@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import { Vector3 } from 'three';
 import styles from '../styles/Home.module.css';
@@ -17,15 +17,32 @@ const Hotspot = ({ position, label }) => (
   </group>
 );
 
-const Cube = () => (
-  <mesh>
-    <boxGeometry args={[4, 4, 4]} /> {/* 4 units represent 400px */}
-    {/* Material for white cube */}
-    <meshPhongMaterial color="white" />
-    {/* Add black borders */}
-    <meshBasicMaterial color="black" wireframe={true} wireframeLinewidth={3} />
-  </mesh>
-);
+const RotatingCube = () => {
+  const ref = React.useRef();
+
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.rotation.x += 0.01;
+      ref.current.rotation.y += 0.01;
+      ref.current.rotation.z += 0.01;
+    }
+  });
+
+  return (
+    <group ref={ref}>
+      {/* Solid white cube */}
+      <mesh>
+        <boxGeometry args={[4, 4, 4]} /> {/* 4 units represent 400px */}
+        <meshPhongMaterial color="white" />
+      </mesh>
+      {/* Wireframe borders */}
+      <mesh>
+        <boxGeometry args={[4, 4, 4]} />
+        <meshBasicMaterial color="black" wireframe={true} />
+      </mesh>
+    </group>
+  );
+};
 
 export default function Home() {
   const [hotspots, setHotspots] = useState([]);
@@ -35,10 +52,10 @@ export default function Home() {
   const handleAddHotspot = () => {
     // Create a new hotspot object
     const newHotspot = { position: position.clone(), label };
-  
+
     // Replace the existing hotspot with the new one
     setHotspots([newHotspot]);
-  
+
     // Clear the label input
     setLabel('');
   };
@@ -55,18 +72,18 @@ export default function Home() {
       <Canvas camera={{ position: [10, 10, 10] }}>
         {/* Ambient light to illuminate the entire scene */}
         <ambientLight intensity={0.8} />
-        
+
         {/* Directional light for more focused lighting */}
         <directionalLight position={[5, 5, 5]} intensity={0.5} />
-        
+
         {/* Point light for additional illumination */}
         <pointLight position={[-5, -5, -5]} intensity={0.5} />
 
         {/* Orbit controls for easy navigation */}
         <OrbitControls />
 
-        {/* Render the cube with proper material */}
-        <Cube />
+        {/* Render the rotating cube with proper material */}
+        <RotatingCube />
 
         {/* Render hotspots */}
         {hotspots.map((hs, index) => (
